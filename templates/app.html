@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>FaeNet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/css/app.css"/>
+</head>
+<body>
+<script>const __USER__ = {{ user | tojson }};</script>
+<aside class="sidebar">
+  <div class="sb-logo"><div class="logo-gem">F</div><span>FaeNet</span></div>
+  <nav class="sb-nav">
+    <a class="nav-link" data-page="feed" href="/feed">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg><span>Início</span>
+    </a>
+    <a class="nav-link" data-page="explore" href="#" onclick="navigate('explore');return false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span>Explorar</span>
+    </a>
+    <a class="nav-link" data-page="messages" href="/messages">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Mensagens</span><span class="badge hidden" id="msg-badge">0</span>
+    </a>
+    <a class="nav-link" data-page="hub" href="/hub">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span>Hub do Curso</span>
+    </a>
+    <a class="nav-link" data-page="notifications" href="#" onclick="navigate('notifications');return false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span>Notificações</span><span class="badge hidden" id="notif-badge">0</span>
+    </a>
+    <a class="nav-link" data-page="profile" href="/profile">
+      <div class="nav-av" id="sidebar-avatar">{{ user.avatar_text }}</div><span>Perfil</span>
+    </a>
+    {% if user.role in ['mod','admin'] %}
+    <a class="nav-link mod-link" data-page="modpanel" href="#" onclick="navigate('modpanel');return false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Moderação</span><span class="badge hidden" id="mod-badge">0</span>
+    </a>
+    {% endif %}
+  </nav>
+  <button class="sb-post-btn" onclick="openModal('post-modal')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M12 5v14M5 12h14"/></svg>Publicar
+  </button>
+  <a href="/logout" class="sb-logout">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sair
+  </a>
+</aside>
+<header class="mob-header">
+  <div class="logo-gem sm">F</div><span class="mob-brand">FaeNet</span>
+  <button class="mob-icon-btn" onclick="navigate('notifications')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <span class="badge hidden" id="mob-notif-badge"></span>
+  </button>
+</header>
+<main id="main-content"><div class="spinner-wrap"><div class="spinner"></div></div></main>
+<aside class="right-panel">
+  <div class="rp-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" placeholder="Buscar pessoas..." id="rp-search-input" oninput="rpSearch(this.value)"/>
+  </div>
+  <div id="rp-search-results" class="hidden"></div>
+  <div id="rp-suggestions"><div class="rp-title">Sugestões</div><div id="rp-sugg-list"></div></div>
+</aside>
+<nav class="mob-nav">
+  <a class="mn" href="/feed" data-page="feed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></a>
+  <a class="mn" href="#" onclick="navigate('explore');return false" data-page="explore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></a>
+  <button class="mn post-mn" onclick="openModal('post-modal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><path d="M12 5v14M5 12h14"/></svg></button>
+  <a class="mn" href="/messages" data-page="messages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></a>
+  <a class="mn" href="/hub" data-page="hub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></a>
+</nav>
+
+<!-- POST MODAL -->
+<div class="modal-overlay hidden" id="post-modal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-hd"><span>Nova publicação</span><button class="modal-x" onclick="closeModal('post-modal')">✕</button></div>
+    <div class="modal-bd">
+      <div class="composer">
+        <div class="c-av" id="compose-avatar">{{ user.avatar_text }}</div>
+        <div class="c-right">
+          <textarea id="post-text" placeholder="O que está acontecendo na FAETEC?" maxlength="500" rows="3" oninput="updateCounter('post-text','post-counter',500)"></textarea>
+          <div id="img-preview-strip" class="img-preview-strip"></div>
+          <div id="poll-builder-wrap"></div>
+        </div>
+      </div>
+      <div class="c-footer">
+        <button class="icon-btn" onclick="document.getElementById('post-img-input').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+        </button>
+        <button class="icon-btn" id="poll-toggle-btn" onclick="togglePollBuilder()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </button>
+        <input type="file" id="post-img-input" accept="image/*" multiple class="hidden" onchange="handlePostImages(event)"/>
+        <span class="counter" id="post-counter">500</span>
+        <button class="btn-brand sm" onclick="submitPost()">Publicar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STORY MODAL -->
+<div class="modal-overlay hidden" id="story-modal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-hd"><span>Novo story</span><button class="modal-x" onclick="closeModal('story-modal')">✕</button></div>
+    <div class="modal-bd">
+      <div id="story-upload-area" class="upload-area" onclick="document.getElementById('story-img-input').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+        <p>Clique para adicionar uma foto</p>
+        <p style="font-size:12px;color:var(--muted2)">Fotos horizontais serão exibidas inteiras</p>
+      </div>
+      <img id="story-preview-img" src="" alt="" class="story-preview hidden"/>
+      <input type="file" id="story-img-input" accept="image/*" class="hidden" onchange="handleStoryImage(event)"/>
+      <input type="text" id="story-caption" placeholder="Legenda (opcional)" class="story-caption-input hidden" maxlength="100"/>
+      <button class="btn-brand w100" onclick="submitStory()" id="story-submit-btn" disabled>Publicar story</button>
+    </div>
+  </div>
+</div>
+
+<!-- STORY VIEWER -->
+<div class="modal-overlay hidden" id="story-viewer">
+  <div class="story-viewer-inner" onclick="event.stopPropagation()">
+    <div class="sv-header">
+      <div class="sv-user-info"><div class="sv-av" id="sv-avatar"></div><div><div class="sv-name" id="sv-name"></div><div class="sv-time" id="sv-time"></div></div></div>
+      <button class="modal-x white" onclick="closeModal('story-viewer')">✕</button>
+    </div>
+    <div class="sv-progress-bar" id="sv-progress"></div>
+    <img class="sv-image" id="sv-image" src="" alt=""/>
+    <div class="sv-caption" id="sv-caption"></div>
+    <div class="sv-actions" id="sv-actions"></div>
+    <button class="sv-nav prev" onclick="storyNav(-1)">‹</button>
+    <button class="sv-nav next" onclick="storyNav(1)">›</button>
+  </div>
+</div>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="modal-overlay hidden" id="edit-profile-modal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-hd"><span>Editar perfil</span><button class="modal-x" onclick="closeModal('edit-profile-modal')">✕</button></div>
+    <div class="modal-bd">
+      <div style="margin-bottom:18px">
+        <div class="field" style="margin-bottom:8px"><label>Banner do perfil</label></div>
+        <div id="ep-banner-preview" style="height:80px;border-radius:10px;overflow:hidden;cursor:pointer;position:relative;background:linear-gradient(135deg,#0c1a35,#091220)" onclick="document.getElementById('ep-banner-input').click()">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;gap:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+            Clique para trocar o banner (imagem ou GIF)
+          </div>
+        </div>
+        <input type="file" id="ep-banner-input" accept="image/*,.gif" class="hidden" onchange="handleBannerImage(event)"/>
+      </div>
+      <div class="ep-avatar-row">
+        <div class="ep-av-wrap" onclick="document.getElementById('ep-img-input').click()">
+          <div class="ep-av" id="ep-avatar-preview">{{ user.avatar_text }}</div>
+          <button class="ep-av-change" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+        </div>
+        <input type="file" id="ep-img-input" accept="image/*" class="hidden" onchange="handleProfileImage(event)"/>
+        <span class="ep-av-hint">Clique no avatar para trocar a foto</span>
+      </div>
+      <div class="field"><label>Nome</label><input id="ep-name" type="text" placeholder="Seu nome completo"/></div>
+      <div class="field">
+        <label>Bio</label>
+        <textarea id="ep-bio" class="ep-textarea" placeholder="Fale sobre você..." maxlength="200" rows="3" oninput="updateCounter('ep-bio','ep-bio-counter',200)"></textarea>
+        <div class="counter-row"><span class="counter sm" id="ep-bio-counter">200</span></div>
+      </div>
+      <div class="field"><label>Turma</label><input id="ep-turma" type="text" placeholder="ex: 2º Ano - Informática"/></div>
+      <button class="btn-brand w100" onclick="saveProfile()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- HUB MODALS -->
+<div class="modal-overlay hidden" id="hub-estagio-modal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-hd"><span>Nova Vaga de Estágio</span><button class="modal-x" onclick="closeModal('hub-estagio-modal')">✕</button></div>
+    <div class="modal-bd">
+      <div class="field"><label>Título</label><input id="hb-est-title" placeholder="Título da vaga"/></div>
+      <div class="field"><label>Empresa</label><input id="hb-est-company" placeholder="Nome da empresa"/></div>
+      <div class="field"><label>Descrição</label><textarea id="hb-est-desc" rows="3" class="ep-textarea" placeholder="Descreva os requisitos..."></textarea></div>
+      <div class="row2">
+        <div class="field"><label>Prazo</label><input type="date" id="hb-est-deadline"/></div>
+        <div class="field"><label>Link</label><input id="hb-est-link" placeholder="https://..."/></div>
+      </div>
+      <button class="btn-brand w100" onclick="submitEstagio()">Publicar vaga</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="hub-prova-modal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-hd"><span>Novo Aviso de Prova</span><button class="modal-x" onclick="closeModal('hub-prova-modal')">✕</button></div>
+    <div class="modal-bd">
+      <div class="field"><label>Título</label><input id="hb-pv-title" placeholder="ex: Prova de Redes"/></div>
+      <div class="field"><label>Disciplina</label><input id="hb-pv-subject" placeholder="Nome da disciplina"/></div>
+      <div class="field"><label>Data</label><input type="date" id="hb-pv-date"/></div>
+      <div class="field"><label>Conteúdo / obs.</label><textarea id="hb-pv-desc" rows="3" class="ep-textarea" placeholder="Conteúdo que vai cair..."></textarea></div>
+      <button class="btn-brand w100" onclick="submitProva()">Publicar aviso</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="hub-forum-modal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-hd"><span>Nova dúvida no fórum</span><button class="modal-x" onclick="closeModal('hub-forum-modal')">✕</button></div>
+    <div class="modal-bd">
+      <div class="field"><label>Título</label><input id="hb-fo-title" placeholder="Resuma sua dúvida..."/></div>
+      <div class="field"><label>Descrição</label><textarea id="hb-fo-content" rows="4" class="ep-textarea" placeholder="Explique com detalhes..."></textarea></div>
+      <div class="field"><label>Tags (vírgula)</label><input id="hb-fo-tags" placeholder="ex: Python, variáveis"/></div>
+      <button class="btn-brand w100" onclick="submitForumTopic()">Publicar dúvida</button>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT MODAL -->
+<div class="modal-overlay hidden" id="report-modal">
+  <div class="modal sm" onclick="event.stopPropagation()">
+    <div class="modal-hd"><span>🚩 Denunciar publicação</span><button class="modal-x" onclick="closeModal('report-modal')">✕</button></div>
+    <div class="modal-bd">
+      <input type="hidden" id="report-post-id"/>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Selecione o motivo da denúncia:</p>
+      <div class="report-options">
+        <label class="report-opt"><input type="radio" name="report-reason" value="Conteúdo ofensivo"/> Conteúdo ofensivo</label>
+        <label class="report-opt"><input type="radio" name="report-reason" value="Bullying ou assédio"/> Bullying ou assédio</label>
+        <label class="report-opt"><input type="radio" name="report-reason" value="Informação falsa"/> Informação falsa</label>
+        <label class="report-opt"><input type="radio" name="report-reason" value="Spam"/> Spam</label>
+        <label class="report-opt"><input type="radio" name="report-reason" value="Conteúdo inapropriado"/> Conteúdo inapropriado</label>
+        <label class="report-opt"><input type="radio" name="report-reason" value="Outro"/> Outro</label>
+      </div>
+      <button class="btn-danger w100" style="margin-top:16px" onclick="submitReport()">Enviar denúncia</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOD EDIT USER MODAL -->
+<div class="modal-overlay hidden" id="mod-edit-user-modal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-hd"><span>✏️ Editar usuário</span><button class="modal-x" onclick="closeModal('mod-edit-user-modal')">✕</button></div>
+    <div class="modal-bd">
+      <input type="hidden" id="mod-edit-username"/>
+      <div class="field"><label>Nome</label><input id="mod-edit-name" type="text"/></div>
+      <div class="field"><label>Curso</label><input id="mod-edit-curso" type="text"/></div>
+      <div class="field"><label>Turma</label><input id="mod-edit-turma" type="text"/></div>
+      <div class="field"><label>Bio</label><textarea id="mod-edit-bio" class="ep-textarea" rows="2"></textarea></div>
+      <button class="btn-brand w100" onclick="modSaveUser()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MOD MODAL (apenas admin) -->
+<div class="modal-overlay hidden" id="add-mod-modal">
+  <div class="modal sm" onclick="event.stopPropagation()">
+    <div class="modal-hd"><span>⚙️ Gerenciar Moderadores</span><button class="modal-x" onclick="closeModal('add-mod-modal')">✕</button></div>
+    <div class="modal-bd">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Digite o @ do usuário para promover ou rebaixar de moderador:</p>
+      <div class="field"><label>Usuário</label><input id="add-mod-username" type="text" placeholder="@usuario"/></div>
+      <button class="btn-brand w100" onclick="submitSetMod()">Confirmar</button>
+      <div id="add-mod-result" style="margin-top:12px;font-size:13px;text-align:center"></div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
+
+<!-- ═══ FAEBOT ═══ -->
+<div id="faebot-container" class="faebot-container">
+  <!-- Robô SVG animado -->
+  <div id="faebot-robot" class="faebot-robot" onclick="toggleFaeBot()">
+    <div class="faebot-speech-bubble hidden" id="faebot-bubble">
+      <span id="faebot-bubble-text">Oi! Sou o FaeBot 👋<br>Clique em mim para tirar dúvidas!</span>
+    </div>
+    <svg class="robot-svg" viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg">
+      <!-- Antena -->
+      <line x1="40" y1="8" x2="40" y2="18" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="40" cy="6" r="4" fill="#6366f1" class="robot-antenna-dot"/>
+      <!-- Cabeça -->
+      <rect x="18" y="18" width="44" height="34" rx="10" fill="#1a2236" stroke="#0ea5e9" stroke-width="2"/>
+      <!-- Olhos -->
+      <circle cx="32" cy="32" r="6" fill="#0ea5e9" class="robot-eye-left"/>
+      <circle cx="48" cy="32" r="6" fill="#0ea5e9" class="robot-eye-right"/>
+      <circle cx="34" cy="30" r="2.5" fill="#fff" class="robot-pupil-l"/>
+      <circle cx="50" cy="30" r="2.5" fill="#fff" class="robot-pupil-r"/>
+      <!-- Boca -->
+      <rect x="28" y="43" width="24" height="5" rx="2.5" fill="#0ea5e9" class="robot-mouth"/>
+      <!-- Orelhas -->
+      <rect x="10" y="26" width="8" height="14" rx="3" fill="#1a2236" stroke="#0ea5e9" stroke-width="1.5"/>
+      <rect x="62" y="26" width="8" height="14" rx="3" fill="#1a2236" stroke="#0ea5e9" stroke-width="1.5"/>
+      <!-- Pescoço -->
+      <rect x="35" y="52" width="10" height="8" rx="2" fill="#0ea5e9"/>
+      <!-- Corpo -->
+      <rect x="16" y="60" width="48" height="32" rx="10" fill="#1a2236" stroke="#0ea5e9" stroke-width="2"/>
+      <!-- Peito/tela -->
+      <rect x="24" y="67" width="32" height="18" rx="5" fill="#0c1a35" stroke="#6366f1" stroke-width="1.5"/>
+      <circle cx="32" cy="76" r="4" fill="#6366f1" class="robot-chest-l"/>
+      <circle cx="48" cy="76" r="4" fill="#0ea5e9" class="robot-chest-r"/>
+      <!-- Braços -->
+      <rect x="3" y="62" width="13" height="22" rx="5" fill="#1a2236" stroke="#0ea5e9" stroke-width="1.5" class="robot-arm-l"/>
+      <rect x="64" y="62" width="13" height="22" rx="5" fill="#1a2236" stroke="#0ea5e9" stroke-width="1.5" class="robot-arm-r"/>
+      <!-- Mãos -->
+      <circle cx="9" cy="87" r="5" fill="#0ea5e9" class="robot-hand-l"/>
+      <circle cx="71" cy="87" r="5" fill="#0ea5e9" class="robot-hand-r"/>
+      <!-- Pernas -->
+      <rect x="22" y="92" width="14" height="8" rx="3" fill="#0ea5e9"/>
+      <rect x="44" y="92" width="14" height="8" rx="3" fill="#0ea5e9"/>
+    </svg>
+    <div class="faebot-label">FaeBot</div>
+  </div>
+</div>
+
+<!-- FAEBOT CHAT MODAL -->
+<div class="modal-overlay hidden" id="faebot-modal">
+  <div class="faebot-chat-window" onclick="event.stopPropagation()">
+    <div class="faebot-chat-header">
+      <div class="faebot-chat-robot-mini">
+        <svg viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
+          <rect x="8" y="8" width="24" height="18" rx="6" fill="#1a2236" stroke="#0ea5e9" stroke-width="1.5"/>
+          <circle cx="15" cy="16" r="4" fill="#0ea5e9"/><circle cx="25" cy="16" r="4" fill="#0ea5e9"/>
+          <circle cx="16" cy="15" r="1.5" fill="#fff"/><circle cx="26" cy="15" r="1.5" fill="#fff"/>
+          <rect x="14" y="23" width="12" height="3" rx="1.5" fill="#0ea5e9"/>
+          <rect x="16" y="26" width="8" height="5" rx="2" fill="#1a2236" stroke="#0ea5e9" stroke-width="1"/>
+          <rect x="6" y="31" width="28" height="19" rx="6" fill="#1a2236" stroke="#0ea5e9" stroke-width="1.5"/>
+          <rect x="0" y="33" width="7" height="12" rx="3" fill="#1a2236" stroke="#0ea5e9" stroke-width="1"/>
+          <rect x="33" y="33" width="7" height="12" rx="3" fill="#1a2236" stroke="#0ea5e9" stroke-width="1"/>
+        </svg>
+      </div>
+      <div>
+        <div class="faebot-chat-title">FaeBot</div>
+        <div class="faebot-chat-sub">Assistente de IA da FaeNet</div>
+      </div>
+      <button class="modal-x" onclick="closeFaeBot()" style="margin-left:auto">✕</button>
+    </div>
+    <div class="faebot-messages" id="faebot-messages">
+      <div class="faebot-msg bot">
+        <div class="faebot-msg-bubble">Olá! 👋 Sou o <strong>FaeBot</strong>, seu assistente da ETESC! Pode me perguntar sobre matérias, estágios, datas de provas ou qualquer dúvida escolar. Como posso ajudar? 🤖✨</div>
+      </div>
+    </div>
+    <div class="faebot-quick-btns">
+      <button onclick="faeBotQuick('Como usar a FaeNet?')">📱 Como usar</button>
+      <button onclick="faeBotQuick('Me ajuda com programação em Python')">🐍 Python</button>
+      <button onclick="faeBotQuick('Quais vagas de estágio têm?')">💼 Estágios</button>
+      <button onclick="faeBotQuick('Me explica redes de computadores')">🌐 Redes</button>
+    </div>
+    <div class="faebot-input-row">
+      <input type="text" id="faebot-input" placeholder="Digite sua dúvida..." onkeydown="if(event.key==='Enter')sendFaeBot()"/>
+      <button onclick="sendFaeBot()" class="faebot-send-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS MODAL -->
+<div class="modal-overlay hidden" id="status-modal">
+  <div class="modal sm" onclick="event.stopPropagation()">
+    <div class="modal-hd"><span>😊 Definir status</span><button class="modal-x" onclick="closeModal('status-modal')">✕</button></div>
+    <div class="modal-bd">
+      <div class="status-emoji-grid" id="status-emoji-grid">
+        <button class="status-emoji-btn" onclick="selectStatusEmoji('😊')">😊</button>
+        <button class="status-emoji-btn" onclick="selectStatusEmoji('🔥')">🔥</button>
+        <button class="status-emoji-btn" onclick="selectStatusEmoji('📚')">📚</button>
+        <button class="status-emoji-btn" onclick="selectStatusEmoji('💻')">💻</button>
+        <button class="status-emoji-btn" onclick="selectStatusEmoji('🎮')">🎮</button>
+        <button class="status-emoji-btn" onclick="selectStatusEmoji('😴')">😴</button>
+        <button class="status-emoji-btn" onclick="selectStatusEmoji('🏫')">🏫</button>
+        <button class="status-emoji-btn" onclick="selectStatusEmoji('🎵')">🎵</button>
+        <button class="status-emoji-btn" onclick="selectStatusEmoji('⚡')">⚡</button>
+        <button class="status-emoji-btn" onclick="selectStatusEmoji('🚀')">🚀</button>
+      </div>
+      <input type="hidden" id="status-emoji-val"/>
+      <div class="field" style="margin-top:14px">
+        <label>Texto do status</label>
+        <input id="status-text-input" type="text" placeholder="ex: Estudando para a prova..." maxlength="80"/>
+      </div>
+      <button class="btn-brand w100" onclick="saveStatus()">Salvar status</button>
+      <button class="btn-outline w100" style="margin-top:8px" onclick="clearStatus()">🗑️ Remover status</button>
+    </div>
+  </div>
+</div>
+
+<!-- PUSH NOTIFICATION TOAST -->
+<div id="push-toast-container" class="push-toast-container"></div>

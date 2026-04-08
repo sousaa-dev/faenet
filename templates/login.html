@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>FaeNet — Entrar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--brand:#0ea5e9;--brand2:#6366f1;--bg:#080e1d;--surface:#111827;--surface2:#1a2236;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);--text:#f1f5f9;--muted:#94a3b8;--muted2:#64748b;--error:#f87171;--glow:rgba(14,165,233,.2)}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    .card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:40px 36px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+    .logo-row{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:32px}
+    .gem{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;box-shadow:0 4px 16px var(--glow)}
+    .brand{font-family:'Syne',sans-serif;font-size:26px;font-weight:800}
+    .tabs{display:flex;background:var(--surface2);border-radius:12px;padding:4px;margin-bottom:28px;gap:4px}
+    .tab{flex:1;padding:10px;border:none;background:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;border-radius:9px;cursor:pointer;transition:all .18s}
+    .tab.active{background:var(--bg);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+    .form-section{display:none}.form-section.active{display:block}
+    .field{margin-bottom:16px}
+    label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+    input,select{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:11px;padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .18s}
+    input:focus,select:focus{border-color:var(--brand)}
+    select option{background:var(--surface2)}
+    .btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--brand),var(--brand2));border:none;border-radius:12px;color:#fff;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px var(--glow);margin-top:8px}
+    .btn:hover{transform:translateY(-1px)}
+    .err{color:var(--error);font-size:13px;margin-top:10px;text-align:center;min-height:18px}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .account-type-row{display:flex;gap:10px;margin-bottom:16px}
+    .atype-btn{flex:1;padding:12px;border:1.5px solid var(--border2);border-radius:11px;background:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .18s;text-align:center}
+    .atype-btn.selected{border-color:var(--brand);color:var(--brand);background:rgba(14,165,233,.08)}
+    .atype-btn .atype-icon{font-size:22px;display:block;margin-bottom:4px}
+    .hint{font-size:11px;color:var(--muted2);margin-top:4px}
+    .divider{display:flex;align-items:center;gap:10px;margin:20px 0;color:var(--muted2);font-size:12px}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+    .badge-mod{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;background:rgba(14,165,233,.15);color:var(--brand);margin-left:6px}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo-row">
+    <div class="gem">F</div>
+    <span class="brand">FaeNet</span>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('login')">Entrar</button>
+    <button class="tab" onclick="switchTab('register')">Criar conta</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="form-section active" id="login-section">
+    <div class="field"><label>Usuário</label><input id="l-user" type="text" placeholder="seu.usuario" autocomplete="username"/></div>
+    <div class="field"><label>Senha</label><input id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password"/></div>
+    <button class="btn" onclick="doLogin()">Entrar</button>
+    <div class="err" id="l-err"></div>
+  </div>
+
+  <!-- REGISTER -->
+  <div class="form-section" id="register-section">
+    <!-- Tipo de conta -->
+    <div class="field">
+      <label>Você é</label>
+      <div class="account-type-row">
+        <button class="atype-btn selected" id="atype-aluno" onclick="selectAccountType('aluno')">
+          <span class="atype-icon">🎓</span>Aluno
+        </button>
+        <button class="atype-btn" id="atype-professor" onclick="selectAccountType('professor')">
+          <span class="atype-icon">👨‍🏫</span>Professor
+        </button>
+      </div>
+    </div>
+
+    <div class="field"><label>Nome completo</label><input id="r-name" type="text" placeholder="Seu nome completo"/></div>
+    <div class="field"><label>Usuário</label><input id="r-user" type="text" placeholder="sem espaços, ex: joao.silva"/></div>
+    <div class="field"><label>Senha</label><input id="r-pass" type="password" placeholder="••••••••"/></div>
+    <div class="field"><label>Curso</label>
+      <select id="r-curso">
+        <option value="">Selecione o curso...</option>
+        <option>Informática</option>
+        <option>Administração</option>
+        <option>Eletrônica</option>
+        <option>Enfermagem</option>
+        <option>Logística</option>
+        <option>Contabilidade</option>
+        <option>Edificações</option>
+      </select>
+    </div>
+
+    <!-- Campo aluno -->
+    <div id="field-aluno">
+      <div class="row2">
+        <div class="field">
+          <label>Turma / Ano</label>
+          <select id="r-turma">
+            <option value="1º Ano">1º Ano</option>
+            <option value="2º Ano">2º Ano</option>
+            <option value="3º Ano">3º Ano</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Nº de Matrícula</label>
+          <input id="r-matricula" type="text" placeholder="ex: 20240001"/>
+          <div class="hint">Número da matrícula escolar</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Campo professor -->
+    <div id="field-professor" style="display:none">
+      <div class="field">
+        <label>ID do Professor</label>
+        <input id="r-professor-id" type="text" placeholder="ex: PROF001"/>
+        <div class="hint">ID fornecido pela instituição</div>
+      </div>
+    </div>
+
+    <button class="btn" onclick="doRegister()">Criar conta</button>
+    <div class="err" id="r-err"></div>
+  </div>
+</div>
+
+<script>
+let currentAccountType = 'aluno';
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1)));
+  document.getElementById('login-section').classList.toggle('active', tab==='login');
+  document.getElementById('register-section').classList.toggle('active', tab==='register');
+}
+
+function selectAccountType(type) {
+  currentAccountType = type;
+  document.getElementById('atype-aluno').classList.toggle('selected', type==='aluno');
+  document.getElementById('atype-professor').classList.toggle('selected', type==='professor');
+  document.getElementById('field-aluno').style.display = type==='aluno' ? 'block' : 'none';
+  document.getElementById('field-professor').style.display = type==='professor' ? 'block' : 'none';
+}
+
+async function doLogin() {
+  const u = document.getElementById('l-user').value.trim();
+  const p = document.getElementById('l-pass').value;
+  const err = document.getElementById('l-err');
+  err.textContent = '';
+  if (!u || !p) { err.textContent = 'Preencha todos os campos'; return; }
+  try {
+    const r = await fetch('/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username:u, password:p}) });
+    const d = await r.json();
+    if (d.success) { window.location.href = '/feed'; }
+    else { err.textContent = d.error || 'Erro ao entrar'; }
+  } catch(e) { err.textContent = 'Erro de conexão'; }
+}
+
+async function doRegister() {
+  const err = document.getElementById('r-err');
+  err.textContent = '';
+  const name = document.getElementById('r-name').value.trim();
+  const user = document.getElementById('r-user').value.trim().toLowerCase();
+  const pass = document.getElementById('r-pass').value;
+  const curso = document.getElementById('r-curso').value;
+  const mat  = document.getElementById('r-matricula').value.trim();
+  const pid  = document.getElementById('r-professor-id').value.trim();
+  const turma = document.getElementById('r-turma').value;
+  if (!name||!user||!pass||!curso) { err.textContent = 'Preencha todos os campos obrigatórios'; return; }
+  if (currentAccountType==='aluno' && !mat) { err.textContent = 'Informe o número de matrícula'; return; }
+  if (currentAccountType==='professor' && !pid) { err.textContent = 'Informe o ID do professor'; return; }
+  const body = { name, username:user, password:pass, curso,
+    account_type: currentAccountType,
+    turma_num: turma,
+    matricula: mat || null,
+    professor_id: pid || null };
+  try {
+    const r = await fetch('/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (d.success) { window.location.href = '/feed'; }
+    else { err.textContent = d.error || 'Erro ao criar conta'; }
+  } catch(e) { err.textContent = 'Erro de conexão'; }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const ls = document.getElementById('login-section');
+    if (ls.classList.contains('active')) doLogin();
+    else doRegister();
+  }
+});
+</script>
+</body>
+</html>
